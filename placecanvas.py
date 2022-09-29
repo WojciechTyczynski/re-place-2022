@@ -19,8 +19,8 @@ class PlaceCanvas:
     def save_canvas(self, path = "images"):
         if(os.path.exists(f'{path}/images.png')):
             i = 0 
-            while(os.path.exists(f'{path}/images ({i}).png')):
+            while(os.path.exists(f'{path}/images {i}.png')):
                 i += 1
-            self.canvas.save(f'{path}/images ({i}).png')
+            self.canvas.save(f'{path}/images {i}.png')
         else:
             self.canvas.save(f'{path}/images.png')
