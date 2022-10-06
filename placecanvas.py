@@ -2,7 +2,7 @@ from PIL import Image
 import os
 class PlaceCanvas:
     def __init__(self, width, height):
-        self.canvas = img = Image.new('RGB', (width, height), color = 'white')
+        self.canvas = Image.new('RGB', (width, height), color = 'white')
 
 
     def update_pixel(self, x,y,color):
@@ -24,3 +24,6 @@ class PlaceCanvas:
             self.canvas.save(f'{path}/images {i}.png')
         else:
             self.canvas.save(f'{path}/images.png')
+
+    def get_image(self):
+        return self.canvas
