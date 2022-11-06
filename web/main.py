@@ -17,6 +17,8 @@ os.chdir(os.getcwd())
 # Opening JSON file
 with open('dict_hours_images.json') as json_file:
     dict_hours_images = json.load(json_file)
+
+atlas_df = pd.read_json('atlas_small.json')
  
 
 app = Dash(__name__)
@@ -44,8 +46,7 @@ def update_figure(selected_hour):
     # Constants
     img_width = 1000
     img_height = 1000
-    scale_factor = 0.75
-
+    scale_factor = 1
     # Add invisible scatter trace.
     # This trace is added to help the autoresize logic work.
     fig.add_trace(
@@ -57,6 +58,18 @@ def update_figure(selected_hour):
         )
     )
 
+    for i in range(len(atlas_df)):
+        fig.add_trace(
+            go.Scatter(
+                x=atlas_df.x[i],
+                y=atlas_df.y[i],
+                mode='lines',
+                fill="toself",
+                text=atlas_df.name[i],
+                name=atlas_df.name[i]
+            )
+        )
+
     # Configure axes
     fig.update_xaxes(
         visible=False,
@@ -67,7 +80,8 @@ def update_figure(selected_hour):
         visible=False,
         range=[0, img_height * scale_factor],
         # the scaleanchor attribute ensures that the aspect ratio stays constant
-        scaleanchor="x"
+        scaleanchor="x",
+        autorange="reversed"
     )
 
     image_path = dict_hours_images[str(selected_hour)]
@@ -78,7 +92,7 @@ def update_figure(selected_hour):
         dict(
             x=0,
             sizex=img_width * scale_factor,
-            y=img_height * scale_factor,
+            y=img_height - (img_height * scale_factor),
             sizey=img_height * scale_factor,
             xref="x",
             yref="y",
@@ -93,6 +107,7 @@ def update_figure(selected_hour):
         width=img_width * scale_factor,
         height=img_height * scale_factor,
         margin={"l": 0, "r": 0, "t": 0, "b": 0},
+        showlegend=False
     )
 
     # Disable the autosize on double click because it adds unwanted margins around the image
