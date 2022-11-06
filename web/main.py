@@ -31,15 +31,23 @@ app.layout = html.Div([
         step=1,
         value=0,
         id='hour-slider', 
-        tooltip={"placement": "bottom", "always_visible": True}
-    )
+        tooltip={"placement": "bottom", "always_visible": True},
+    ),
+    dcc.Checklist(
+        id='checklist',
+        options=[
+            {'label': 'Show Atlas Layer', 'value': 'show_atlas'},
+        ],
+        value=['show_atlas']
+    ),
 ])
 
 
 @app.callback(
     Output('image-with-slider', 'figure'),
-    Input('hour-slider', 'value'))
-def update_figure(selected_hour):
+    Input('hour-slider', 'value'),
+    Input('checklist', 'value'))
+def update_figure(selected_hour, checklist):
     # Create figure
     fig = go.Figure()
 
@@ -58,31 +66,18 @@ def update_figure(selected_hour):
         )
     )
 
-    for i in range(len(atlas_df)):
-        fig.add_trace(
-            go.Scatter(
-                x=atlas_df.x[i],
-                y=atlas_df.y[i],
-                mode='lines',
-                fill="toself",
-                text=atlas_df.name[i],
-                name=atlas_df.name[i]
+    if 'show_atlas' in checklist:
+        for i in range(len(atlas_df)):
+            fig.add_trace(
+                go.Scatter(
+                    x=atlas_df.x[i],
+                    y=atlas_df.y[i],
+                    mode='lines',
+                    fill="toself",
+                    text=atlas_df.name[i],
+                    name=atlas_df.name[i],
+                )
             )
-        )
-
-    # Configure axes
-    fig.update_xaxes(
-        visible=False,
-        range=[0, img_width * scale_factor]
-    )
-
-    fig.update_yaxes(
-        visible=False,
-        range=[0, img_height * scale_factor],
-        # the scaleanchor attribute ensures that the aspect ratio stays constant
-        scaleanchor="x",
-        autorange="reversed"
-    )
 
     image_path = dict_hours_images[str(selected_hour)]
     print(image_path)
@@ -100,6 +95,22 @@ def update_figure(selected_hour):
             layer="below",
             sizing="stretch",
             source=image_path)
+    )
+
+    # Configure axes
+    fig.update_xaxes(
+        visible=False,
+        range=[0, img_width * scale_factor],
+        constrain="domain"
+    )
+
+    fig.update_yaxes(
+        visible=False,
+        range=[0, img_height * scale_factor],
+        # the scaleanchor attribute ensures that the aspect ratio stays constant
+        scaleanchor="x",
+        autorange="reversed",
+        constrain="domain"
     )
 
     # Configure other layout
