@@ -22,7 +22,7 @@ with open('dict_hours_images.json') as json_file:
 app = Dash(__name__)
 
 app.layout = html.Div([
-    dcc.Graph(id='image-with-slider'),
+    dcc.Graph(id='image-with-slider', config={'doubleClick': 'reset'}),
     dcc.Slider(
         0,
         72,
@@ -44,7 +44,7 @@ def update_figure(selected_hour):
     # Constants
     img_width = 1000
     img_height = 1000
-    scale_factor = 0.5
+    scale_factor = 0.75
 
     # Add invisible scatter trace.
     # This trace is added to help the autoresize logic work.
