@@ -1,5 +1,6 @@
 import imp
 from dash import Dash, dcc, html, Input, Output
+import dash_daq as daq
 import plotly.express as px
 
 import plotly.graph_objects as go
@@ -24,23 +25,29 @@ atlas_df = pd.read_json('atlas_small.json')
 app = Dash(__name__)
 
 app.layout = html.Div([
-    dcc.Graph(id='image-with-slider', config={'doubleClick': 'reset'}),
-    dcc.Slider(
-        0,
-        72,
-        step=1,
-        value=0,
-        id='hour-slider', 
-        tooltip={"placement": "bottom", "always_visible": True},
-    ),
-    dcc.Checklist(
-        id='checklist',
-        options=[
-            {'label': 'Show Atlas Layer', 'value': 'show_atlas'},
-        ],
-        value=['show_atlas']
-    ),
-])
+    html.Div([
+        dcc.Graph(id='image-with-slider', config={'doubleClick': 'reset'}),
+        ]),
+    html.Div([
+        daq.Slider(
+            min=0,
+            max=81,
+            step=1,
+            value=81,
+            size=1000,
+            id='hour-slider',
+            handleLabel={"showCurrentValue": True,"label": "Hours"},)
+            ], style={}),
+    html.Div([
+        dcc.Checklist(
+            id='checklist',
+            options=[
+                {'label': 'Show Atlas Layer', 'value': 'show_atlas'},
+            ],
+            value=['show_atlas']
+            ),
+        ]),
+], style={'align-items': 'center', 'justify-content': 'center', 'display': 'inline-block', 'margin': '25 auto', 'width': '100%'})
 
 
 @app.callback(
