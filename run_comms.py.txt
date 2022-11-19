@@ -6,7 +6,6 @@ import csv
 from datetime import datetime
 import fastparquet
 from tqdm import tqdm
-import pickle
 
 from PIL import Image
 import os
@@ -22,10 +21,10 @@ class PlaceCanvas:
         example:
         update_pixel(10,10,"#B4FBB8")
         """
-        h = color.lstrip('#')
-        rgb_value = tuple(int(h[i:i+2], 16) for i in (0, 2, 4))
-        self.canvas.putpixel((x,y), rgb_value)
-        #   self.canvas.putpixel((x,y), color)
+#         h = color.lstrip('#')
+#         rgb_value = tuple(int(h[i:i+2], 16) for i in (0, 2, 4))
+#         self.canvas.putpixel((x,y), rgb_value)
+        self.canvas.putpixel((x,y), color)
 
     def save_canvas(self, path = "images/"):
         if(os.path.exists(f'{path}images.png')):
@@ -39,15 +38,8 @@ class PlaceCanvas:
     def get_image(self):
         return self.canvas
 		
-		
-sub_g = Graph(directed = False)
-sub_g.load('sub_g.gt')		
-
 v_con_sub_g = Graph(directed = False)
 v_con_sub_g.load('graph_filtered.gt')
-
-with open('dict_pixel.pkl', 'rb') as f:
-    dict_pixel = pickle.load(f)
 
 state = minimize_blockmodel_dl(v_con_sub_g)
 b = state.get_blocks()
