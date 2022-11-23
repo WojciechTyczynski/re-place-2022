@@ -10,6 +10,8 @@ import plotly.express as px
 from dash.dependencies import Input, Output
 
 
+action_per_user = pd.read_csv('./assets/interactions_pr_user.csv')
+
 # app info
 app = dash.Dash()
 
@@ -29,10 +31,17 @@ fig.add_traces(go.Scatter(x=x, y=y**2.2, mode = 'lines+markers'))
 
 app.layout = html.Div([
     dcc.Graph(
-        id='basic-interactions',
-        figure=fig,
-    ),
-
+            id='interaction-per-user-graph-2',
+            config={'doubleClick': 'reset'},
+            figure={
+                'data': [
+                    {'x': action_per_user['user_id'], 'y': action_per_user['count'], 'type': 'bar', 'name': 'SF'},
+                ],
+                'layout': {
+                    'title': 'Interactions per user'
+                }
+            },
+        ),
     html.Div(className='row', children=[
         html.Div([
             dcc.Markdown(d("""

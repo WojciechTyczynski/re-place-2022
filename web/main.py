@@ -12,9 +12,9 @@ import numpy as np
 import json
 
 import os
-
 # import Image
 from PIL import Image
+
 #  set working directory
 os.chdir(os.getcwd())
 # Opening JSON file
@@ -33,6 +33,8 @@ styles = {
 }
 
 action_per_hour = pd.read_csv('./assets/interactions_pr_hour.csv')
+action_per_pixel = pd.read_csv('./assets/interactions_pr_pixel.csv')
+action_per_user = pd.read_csv('./assets/interactions_pr_user.csv')
 
 # app = Dash(__name__, external_stylesheets=external_stylesheets)
 app = DashProxy(transforms=[MultiplexerTransform()], external_stylesheets=external_stylesheets)
@@ -77,8 +79,9 @@ app.layout = html.Div([
                             html.Div(children=[
                                 dcc.Markdown(
                                     '''
-                                    ### r/place timeline
-                                    This is some test to see if this works
+                                    ### Projecy description
+                                    This web application shows you the timeline of Reddit r/place from April 2022 and the overlay from Reddit [r/place atlas]  (https://place-atlas.stefanocoding.me/)  created by Roland Rytz. It is capped to 1000x1000px, and aims to show another way of capturing communities than the manual process that Roland Rytz started. By analyzing all the entries on r/place and creating a graph of all the interactions, we have discovered communities and found their outlines only by looking at how people interact. 
+                                    The graph is modelled by creating a node for each color for each pixel, meaning that we get 16 different nodes for each pixel. Then we make an edge to one of these nodes from a user if a user has used that color-pixel. When we have this graph, then we can do community detection on the graph, and see where the different communities place their pixels. 
                                     '''
                                 ),
                                 html.H3(id='atlas-name'),
@@ -92,19 +95,38 @@ app.layout = html.Div([
     ]),
         dcc.Tab(label='r/place analysis', value='tab-2', children=[
             html.Div([
-            html.H3('Tab content 2'),
-            dcc.Graph(
-                id='interaction-per-h-graph-2',
-                config={'doubleClick': 'reset'},
-                figure={
-                    'data': [
-                        {'x': action_per_hour['timestamp'], 'y': action_per_hour['count'], 'type': 'bar', 'name': 'SF'},
-                    ],
-                    'layout': {
-                        'title': 'Interactions per hour'
-                    }
-                },
-            )
+                dbc.Row([
+                    dbc.Col(html.Div(
+                        dcc.Graph(
+                            id='interaction-per-h-graph-2',
+                            config={'doubleClick': 'reset'},
+                            figure={
+                                'data': [
+                                    {'x': action_per_hour['timestamp'], 'y': action_per_hour['count'], 'type': 'bar', 'name': 'SF'},
+                                ],
+                                'layout': {
+                                    'title': 'Interactions per hour'
+                                }
+                            },
+                        ),
+                ),),
+            ]),
+            # dbc.Row([
+            #         dbc.Col(html.Div(
+            #             dcc.Graph(
+            #                 id='interaction-per-user-graph-2',
+            #                 config={'doubleClick': 'reset'},
+            #                 figure={
+            #                     'data': [
+            #                         {'x': action_per_user['user_id'], 'y': action_per_user['count'], 'type': 'bar', 'name': 'SF'},
+            #                     ],
+            #                     'layout': {
+            #                         'title': 'Interactions per user'
+            #                     }
+            #                 },
+            #             ),
+            #     ),),
+            # ]),
         ], style={'margin': '0 auto','align-items': 'center'}),
             html.Div(children = [
                 html.Iframe(
