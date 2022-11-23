@@ -18,10 +18,10 @@ from PIL import Image
 #  set working directory
 os.chdir(os.getcwd())
 # Opening JSON file
-with open('dict_hours_images.json') as json_file:
+with open('./assets/dict_hours_images.json') as json_file:
     dict_hours_images = json.load(json_file)
 
-atlas_df = pd.read_json('atlas_small.json')
+atlas_df = pd.read_json('./assets/atlas_small.json')
  
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css', dbc.themes.BOOTSTRAP]
 
@@ -32,7 +32,7 @@ styles = {
     }
 }
 
-action_per_hour = pd.read_csv('interactions_pr_hour.csv')
+action_per_hour = pd.read_csv('./assets/interactions_pr_hour.csv')
 
 # app = Dash(__name__, external_stylesheets=external_stylesheets)
 app = DashProxy(transforms=[MultiplexerTransform()], external_stylesheets=external_stylesheets)
@@ -107,12 +107,14 @@ app.layout = html.Div([
             )
         ], style={'margin': '0 auto','align-items': 'center'}),
             html.Div(children = [
-                html.Video(
-                    controls = True,
+                html.Iframe(
+                    # controls = True,
                     id = 'movie_player',
-                    src = "./movie.mp4",
-                    autoPlay=True,
-                    loop=True,),
+                    src = "https://www.youtube.com/embed/lKWqIg4nZKs",
+                    width = "1000px",
+                    # autoPlay=True,
+                    # loop=True,
+                    style={"height": "720px", "width": "720px", 'margin-left': '25 auto'},),
         ])
         ]
             ),
@@ -158,8 +160,10 @@ def update_figure(selected_hour, checklist):
                     y=atlas_df.y_scaled.loc[i],
                     mode='lines',
                     fill="toself",
-                    hoveron='points+fills',
-                    text=atlas_df.name.loc[i],
+                    # hoveron='points+fills',
+                    # customdata=[atlas_df.name.loc[i], atlas_df.description.loc[i]],
+                    # hovertext=atlas_df.name.loc[i],
+                    # text=atlas_df.name.loc[i]
                     name=atlas_df.name.loc[i],
                 )
             )
