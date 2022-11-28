@@ -35,6 +35,44 @@ styles = {
 action_per_hour = pd.read_csv('./assets/interactions_pr_hour.csv')
 action_per_pixel = pd.read_csv('./assets/interactions_pr_pixel.csv')
 action_per_user = pd.read_csv('./assets/interactions_pr_user.csv')
+action_per_pixel = action_per_pixel[(action_per_pixel['x1'] <  1000) & (action_per_pixel['y1'] < 1000)]
+
+viridis = px.colors.sequential.Viridis
+colorscale = [
+        [0, viridis[0]],
+        [1./1000000, viridis[2]],
+        [1./10000, viridis[4]],
+        [1./100, viridis[7]],
+        [1., viridis[9]],
+    ]
+colorbar= dict(
+        tick0= 0,
+        tickmode= 'array',
+        tickvals= [0, 1000, 10000]
+    )
+
+#Figures
+fig_action_per_user  = go.Figure(data=go.Histogram(histfunc="count", x=action_per_user['count'], nbinsx=100))
+fig_action_per_user.update_yaxes(type='log')
+fig_action_per_user.update_layout(template='plotly_white', title_x=0.5, title_text='Number of interactions per user')
+
+fig_action_per_pixel  = go.Figure(data=go.Heatmap(
+                   z=action_per_pixel['count'],
+                   x=action_per_pixel['x1'],
+                   y=action_per_pixel['y1'],
+                   colorscale=colorscale,))
+
+fig_action_per_pixel.update_layout(
+        template='plotly_white',
+        title_x=0.5,
+        width=1000,
+        height=1000,
+        margin={"l": 0, "r": 0, "t": 0, "b": 0},
+        showlegend=False,
+    )
+
+fig_action_per_pixel.update_xaxes(visible=False, showticklabels=False)
+fig_action_per_pixel.update_yaxes(scaleanchor = "x", autorange="reversed", visible=False, showticklabels=False)
 
 # app = Dash(__name__, external_stylesheets=external_stylesheets)
 app = DashProxy(transforms=[MultiplexerTransform()], external_stylesheets=external_stylesheets)
@@ -105,39 +143,46 @@ app.layout = html.Div([
                                     {'x': action_per_hour['timestamp'], 'y': action_per_hour['count'], 'type': 'bar', 'name': 'SF'},
                                 ],
                                 'layout': {
-                                    'title': 'Interactions per hour'
+                                    'title': 'Interactions per hour',
+                                    'template': 'plotly_white'
                                 }
                             },
                         ),
                 ),),
             ]),
-            # dbc.Row([
-            #         dbc.Col(html.Div(
-            #             dcc.Graph(
-            #                 id='interaction-per-user-graph-2',
-            #                 config={'doubleClick': 'reset'},
-            #                 figure={
-            #                     'data': [
-            #                         {'x': action_per_user['user_id'], 'y': action_per_user['count'], 'type': 'bar', 'name': 'SF'},
-            #                     ],
-            #                     'layout': {
-            #                         'title': 'Interactions per user'
-            #                     }
-            #                 },
-            #             ),
-            #     ),),
-            # ]),
+            dbc.Row([
+                    dbc.Col(html.Div(
+                        dcc.Graph(
+                            id='interaction-per-user-graph-2',
+                            config={'doubleClick': 'reset'},
+                            figure=fig_action_per_user,
+                        ),
+                ),),
+            ]),
+            html.H2('Interactions per pixel'),
+            dbc.Row([
+                    dbc.Col(html.Div()),
+                    dbc.Col(html.Div(children = [
+                        html.Iframe(
+                            # controls = True,
+                            id = 'movie_player',
+                            src = "https://www.youtube.com/embed/lKWqIg4nZKs",
+                            width = "2000px",
+                            # autoPlay=True,
+                            # loop=True,
+                            style={"height": "1000px", "width": "1000px", 'margin-left': '25 auto'},),
+                            ])),
+                    dbc.Col(html.Div()),
+                    dbc.Col(html.Div(children = [
+                        dcc.Graph(
+                                id='interaction-per-pixel-graph-2',
+                                config={'doubleClick': 'reset'},
+                                figure=fig_action_per_pixel,
+                                ),
+                            ])),
+                    dbc.Col(html.Div())
+            ]),
         ], style={'margin': '0 auto','align-items': 'center'}),
-            html.Div(children = [
-                html.Iframe(
-                    # controls = True,
-                    id = 'movie_player',
-                    src = "https://www.youtube.com/embed/lKWqIg4nZKs",
-                    width = "1000px",
-                    # autoPlay=True,
-                    # loop=True,
-                    style={"height": "720px", "width": "720px", 'margin-left': '25 auto'},),
-        ])
         ]
             ),
     ]),
@@ -177,16 +222,17 @@ def update_figure(selected_hour, checklist):
     if 'show_atlas' in checklist:
         for i in range(len(atlas_df)):
             fig.add_trace(
-                go.Scatter(
+                go.Scattergl(
                     x=atlas_df.x_scaled.loc[i],
                     y=atlas_df.y_scaled.loc[i],
                     mode='lines',
                     fill="toself",
+                    opacity=0.5,
                     # hoveron='points+fills',
                     # customdata=[atlas_df.name.loc[i], atlas_df.description.loc[i]],
-                    # hovertext=atlas_df.name.loc[i],
-                    # text=atlas_df.name.loc[i]
-                    name=atlas_df.name.loc[i],
+                    hovertext=atlas_df.name.loc[i],
+                    # text=atlas_df.name.loc[i],
+                    name=atlas_df.name.loc[i]
                 )
             )
 
