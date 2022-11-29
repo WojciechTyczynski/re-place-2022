@@ -407,13 +407,15 @@ def update_figure_2(selected_hour, checklist):
     if 'show_atlas' in checklist:
         for i in range(len(atlas_400_df)):
             fig.add_trace(
-                go.Scattergl(
+                go.Scatter(
                     x=atlas_400_df.x_scaled.loc[i],
                     y=atlas_400_df.y_scaled.loc[i],
                     mode='lines',
+                    line=dict(color='black', width=3),
                     fill="toself",
-                    opacity=0.5,
-                    # hoveron='points+fills',
+                    fillcolor='rgba(0,0,0,0.05)',
+                    opacity=1,
+                    hoveron='points+fills',
                     # customdata=[atlas_df.name.loc[i], atlas_df.description.loc[i]],
                     hovertext=atlas_400_df.name.loc[i],
                     # text=atlas_df.name.loc[i],
