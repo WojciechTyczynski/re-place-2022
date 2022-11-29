@@ -393,8 +393,8 @@ def update_figure_2(selected_hour, checklist):
     # This trace is added to help the autoresize logic work.
 
     # Scaled atlas shapes    
-    atlas_400_df['x_scaled']  = atlas_400_df['x'].apply(lambda x: np.array(x) * (img_width/original_img_width) * scale_factor)
-    atlas_400_df['y_scaled']  = atlas_400_df['y'].apply(lambda x: np.array(x) * (img_height/original_img_height) * scale_factor)
+    atlas_400_df['x_scaled']  = atlas_400_df['x_cropped'].apply(lambda x: np.array(x) * (img_width/original_img_width) * scale_factor)
+    atlas_400_df['y_scaled']  = atlas_400_df['y_cropped'].apply(lambda x: np.array(x) * (img_height/original_img_height) * scale_factor)
     fig.add_trace(
         go.Scatter(
             x=[0, img_width * scale_factor],
