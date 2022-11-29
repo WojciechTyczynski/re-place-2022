@@ -21,7 +21,17 @@ os.chdir(os.getcwd())
 with open('./assets/dict_hours_images.json') as json_file:
     dict_hours_images = json.load(json_file)
 
+with open('./assets/dict_raw_images.json') as json_file:
+    dict_raw_images = json.load(json_file)
+    
+with open('./assets/dict_communities_denoised.json') as json_file:
+    dict_communities_denoised = json.load(json_file)
+
+with open('./assets/dict_communities_raw.json') as json_file:
+    dict_communities_raw = json.load(json_file)
+
 atlas_df = pd.read_json('./assets/atlas_small.json')
+atlas_400_df = pd.read_json('./assets/atlas_small_400.json')
  
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css', dbc.themes.BOOTSTRAP]
 
@@ -79,13 +89,13 @@ app = DashProxy(transforms=[MultiplexerTransform()], external_stylesheets=extern
 
 app.layout = html.Div([
     dcc.Tabs(id='tabs-example-1', value='tab-1', children=[
-        dcc.Tab(label='r/place - Intro', value='tab-1', children=[
+        dcc.Tab(label='r/place - Intro', value='tab-1',children=[
             html.Div([
                     dbc.Row([
                         dbc.Col(html.Div(""), width="auto"),
                         dbc.Col(
                             html.Div([
-                                html.H3('The 2022 r/place timeline and atlas'),
+                                html.H2('The 2022 r/place timeline and atlas'),
                                 html.Div([
                                 dcc.Graph(
                                     id='image-with-slider',
@@ -118,14 +128,15 @@ app.layout = html.Div([
                             html.Div(children=[
                                 dcc.Markdown(
                                     '''
-                                    ### Project description
+                                    ## Project description
                                     This web application shows you the timeline of Reddit r/place from April 2022 and the overlay from Reddit [r/place atlas]  (https://place-atlas.stefanocoding.me/)  created by Roland Rytz. It is capped to 1000x1000px, and aims to show another way of capturing communities than the manual process that Roland Rytz started. By analyzing all the entries on r/place and creating a graph of all the interactions, we have discovered communities and found their outlines only by looking at how people interact. 
                                     The graph is modelled by creating a node for each color for each pixel, meaning that we get 16 different nodes for each pixel. Then we make an edge to one of these nodes from a user if a user has used that color-pixel. When we have this graph, then we can do community detection on the graph, and see where the different communities place their pixels. 
-                                    '''
+                                    ''',
+                                    style={'font-size': 14, 'color': 'black', 'margin-left': '10px', 'margin-right': 'auto', 'width': '100%', 'text-align': 'left'},
                                 ),
                                 html.H3(id='atlas-name'),
                                 # html.Pre(id='hover-data', style=styles['pre']),
-                                dcc.Markdown(id='atlas_description'),
+                                dcc.Markdown(id='atlas_description', style={'font-size': 14, 'color': 'black', 'margin-left': '10px', 'margin-right': 'auto', 'width': '100%', 'text-align': 'left'}),
                     ]),
                             width="3"
                             ),
@@ -214,24 +225,24 @@ app.layout = html.Div([
                                     id='checklist-2',
                                     options=[
                                         {
-                                            'label': 'Show Atlas Layer',
-                                            'value': 'show_atlas',
-                                        },
-                                        {
                                             'label': 'Show picture', 
                                             'value': 'show_picture'
+                                        },
+                                        {
+                                            'label': 'Show Atlas Layer',
+                                            'value': 'show_atlas',
                                         },
                                         {
                                             'label': 'Show communities', 
                                             'value': 'show_communities'
                                         },
                                         {
-                                            'label': 'Show communities - smoothed', 
-                                            'value': 'show_communities_smoothed'
+                                            'label': 'Show communities - denoised', 
+                                            'value': 'show_communities_denoised'
                                         },
 
                                     ],
-                                    value=['show_atlas', 'show_picture'],
+                                    value=['show_picture'],
                                     labelStyle = {'display':'block', 'font-size': 16, 'color': 'black', 'margin-left': '10px', 'margin-right': 'auto', 'width': '100%', 'text-align': 'left'},
                                     ),
                                 ], style={'display': 'block', 'margin-left': 'auto', 'width': '100%'}),
@@ -373,6 +384,8 @@ def update_figure_2(selected_hour, checklist):
     fig = go.Figure()
 
     # Constants
+    original_img_width = 400
+    original_img_height = 400
     img_width = 1000
     img_height = 1000
     scale_factor = 1
@@ -380,8 +393,8 @@ def update_figure_2(selected_hour, checklist):
     # This trace is added to help the autoresize logic work.
 
     # Scaled atlas shapes    
-    atlas_df['x_scaled']  = atlas_df['x'].apply(lambda x: np.array(x) * scale_factor)
-    atlas_df['y_scaled']  = atlas_df['y'].apply(lambda x: np.array(x) * scale_factor)
+    atlas_400_df['x_scaled']  = atlas_400_df['x'].apply(lambda x: np.array(x) * (img_width/original_img_width) * scale_factor)
+    atlas_400_df['y_scaled']  = atlas_400_df['y'].apply(lambda x: np.array(x) * (img_height/original_img_height) * scale_factor)
     fig.add_trace(
         go.Scatter(
             x=[0, img_width * scale_factor],
@@ -392,24 +405,26 @@ def update_figure_2(selected_hour, checklist):
     )
     
     if 'show_atlas' in checklist:
-        for i in range(len(atlas_df)):
+        for i in range(len(atlas_400_df)):
             fig.add_trace(
                 go.Scattergl(
-                    x=atlas_df.x_scaled.loc[i],
-                    y=atlas_df.y_scaled.loc[i],
+                    x=atlas_400_df.x_scaled.loc[i],
+                    y=atlas_400_df.y_scaled.loc[i],
                     mode='lines',
                     fill="toself",
                     opacity=0.5,
                     # hoveron='points+fills',
                     # customdata=[atlas_df.name.loc[i], atlas_df.description.loc[i]],
-                    hovertext=atlas_df.name.loc[i],
+                    hovertext=atlas_400_df.name.loc[i],
                     # text=atlas_df.name.loc[i],
-                    name=atlas_df.name.loc[i]
+                    name=atlas_400_df.name.loc[i]
                 )
             )
 
 
-    image_path = dict_hours_images[str(selected_hour)]
+    image_path = dict_raw_images[str(selected_hour)]
+    comunity_raw_image = dict_communities_raw[str(selected_hour)]
+    comunity_raw_denoised = dict_communities_denoised[str(selected_hour)]
     print(image_path)
 
     # Add image
@@ -426,6 +441,38 @@ def update_figure_2(selected_hour, checklist):
                 layer="below",
                 sizing="stretch",
                 source=image_path)
+        )
+    
+    # Add comunity raw image
+    if 'show_communities' in checklist:
+        fig.add_layout_image(
+            dict(
+                x=0,
+                sizex=img_width * scale_factor,
+                y=(img_height * scale_factor) - (img_height * scale_factor),
+                sizey=img_height * scale_factor,
+                xref="x",
+                yref="y",
+                opacity=0.75,
+                layer="below",
+                sizing="stretch",
+                source=comunity_raw_image)
+        )
+
+    # Add comunity denoised image
+    if 'show_communities_denoised' in checklist:
+        fig.add_layout_image(
+            dict(
+                x=0,
+                sizex=img_width * scale_factor,
+                y=(img_height * scale_factor) - (img_height * scale_factor),
+                sizey=img_height * scale_factor,
+                xref="x",
+                yref="y",
+                opacity=0.85,
+                layer="below",
+                sizing="stretch",
+                source=comunity_raw_denoised)
         )
 
     # Configure axes
