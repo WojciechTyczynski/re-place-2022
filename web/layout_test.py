@@ -4,8 +4,7 @@ import pandas as pd
 import plotly.graph_objects as go
 import numpy as np
 import dash
-import dash_core_components as dcc
-import dash_html_components as html
+from dash import dcc, html
 import plotly.express as px
 from dash.dependencies import Input, Output
 
@@ -35,7 +34,7 @@ app.layout = html.Div([
             config={'doubleClick': 'reset'},
             figure={
                 'data': [
-                    {'x': action_per_user['user_id'], 'y': action_per_user['count'], 'type': 'bar', 'name': 'SF'},
+                    {'y': action_per_user['count'], 'type': 'bar', 'name': 'SF'},
                 ],
                 'layout': {
                     'title': 'Interactions per user'

@@ -35,13 +35,51 @@ styles = {
 action_per_hour = pd.read_csv('./assets/interactions_pr_hour.csv')
 action_per_pixel = pd.read_csv('./assets/interactions_pr_pixel.csv')
 action_per_user = pd.read_csv('./assets/interactions_pr_user.csv')
+action_per_pixel = action_per_pixel[(action_per_pixel['x1'] <  1000) & (action_per_pixel['y1'] < 1000)]
+
+viridis = px.colors.sequential.Viridis
+colorscale = [
+        [0, viridis[0]],
+        [1./1000000, viridis[2]],
+        [1./10000, viridis[4]],
+        [1./100, viridis[7]],
+        [1., viridis[9]],
+    ]
+colorbar= dict(
+        tick0= 0,
+        tickmode= 'array',
+        tickvals= [0, 1000, 10000]
+    )
+
+#Figures
+fig_action_per_user  = go.Figure(data=go.Histogram(histfunc="count", x=action_per_user['count'], nbinsx=100))
+fig_action_per_user.update_yaxes(type='log')
+fig_action_per_user.update_layout(template='plotly_white', title_x=0.5, title_text='Number of interactions per user')
+
+fig_action_per_pixel  = go.Figure(data=go.Heatmap(
+                   z=action_per_pixel['count'],
+                   x=action_per_pixel['x1'],
+                   y=action_per_pixel['y1'],
+                   colorscale=colorscale,))
+
+fig_action_per_pixel.update_layout(
+        template='plotly_white',
+        title_x=0.5,
+        width=1000,
+        height=1000,
+        margin={"l": 0, "r": 0, "t": 0, "b": 0},
+        showlegend=False,
+    )
+
+fig_action_per_pixel.update_xaxes(visible=False, showticklabels=False)
+fig_action_per_pixel.update_yaxes(scaleanchor = "x", autorange="reversed", visible=False, showticklabels=False)
 
 # app = Dash(__name__, external_stylesheets=external_stylesheets)
 app = DashProxy(transforms=[MultiplexerTransform()], external_stylesheets=external_stylesheets)
 
 app.layout = html.Div([
     dcc.Tabs(id='tabs-example-1', value='tab-1', children=[
-        dcc.Tab(label='r/place - communities and atlas', value='tab-1', children=[
+        dcc.Tab(label='r/place - Intro', value='tab-1', children=[
             html.Div([
                     dbc.Row([
                         dbc.Col(html.Div(""), width="auto"),
@@ -70,7 +108,8 @@ app.layout = html.Div([
                                     options=[
                                         {'label': 'Show Atlas Layer', 'value': 'show_atlas'},
                                     ],
-                                    value=['show_atlas']
+                                    value=['show_atlas'],
+                                    labelStyle = {'display':'block', 'font-size': 16, 'color': 'black', 'margin-left': '10px', 'margin-right': 'auto', 'width': '100%', 'text-align': 'left'},
                                     ),
                                 ]),
                         ], style={'align-items': 'center', 'justify-content': 'center', 'display': 'inline-block', 'margin-left': 'auto', 'width': '100%'}),
@@ -79,7 +118,7 @@ app.layout = html.Div([
                             html.Div(children=[
                                 dcc.Markdown(
                                     '''
-                                    ### Projecy description
+                                    ### Project description
                                     This web application shows you the timeline of Reddit r/place from April 2022 and the overlay from Reddit [r/place atlas]  (https://place-atlas.stefanocoding.me/)  created by Roland Rytz. It is capped to 1000x1000px, and aims to show another way of capturing communities than the manual process that Roland Rytz started. By analyzing all the entries on r/place and creating a graph of all the interactions, we have discovered communities and found their outlines only by looking at how people interact. 
                                     The graph is modelled by creating a node for each color for each pixel, meaning that we get 16 different nodes for each pixel. Then we make an edge to one of these nodes from a user if a user has used that color-pixel. When we have this graph, then we can do community detection on the graph, and see where the different communities place their pixels. 
                                     '''
@@ -105,44 +144,105 @@ app.layout = html.Div([
                                     {'x': action_per_hour['timestamp'], 'y': action_per_hour['count'], 'type': 'bar', 'name': 'SF'},
                                 ],
                                 'layout': {
-                                    'title': 'Interactions per hour'
+                                    'title': 'Interactions per hour',
+                                    'template': 'plotly_white'
                                 }
                             },
                         ),
                 ),),
             ]),
-            # dbc.Row([
-            #         dbc.Col(html.Div(
-            #             dcc.Graph(
-            #                 id='interaction-per-user-graph-2',
-            #                 config={'doubleClick': 'reset'},
-            #                 figure={
-            #                     'data': [
-            #                         {'x': action_per_user['user_id'], 'y': action_per_user['count'], 'type': 'bar', 'name': 'SF'},
-            #                     ],
-            #                     'layout': {
-            #                         'title': 'Interactions per user'
-            #                     }
-            #                 },
-            #             ),
-            #     ),),
-            # ]),
+            dbc.Row([
+                    dbc.Col(html.Div(
+                        dcc.Graph(
+                            id='interaction-per-user-graph-2',
+                            config={'doubleClick': 'reset'},
+                            figure=fig_action_per_user,
+                        ),
+                ),),
+            ]),
+            html.H2('Interactions per pixel'),
+            dbc.Row([
+                    dbc.Col(html.Div()),
+                    dbc.Col(html.Div(children = [
+                        html.Iframe(
+                            # controls = True,
+                            id = 'movie_player',
+                            src = "https://www.youtube.com/embed/lKWqIg4nZKs",
+                            width = "2000px",
+                            # autoPlay=True,
+                            # loop=True,
+                            style={"height": "1000px", "width": "1000px", 'margin-left': '25 auto'},),
+                            ])),
+                    dbc.Col(html.Div()),
+                    dbc.Col(html.Div(children = [
+                        dcc.Graph(
+                                id='interaction-per-pixel-graph-2',
+                                config={'doubleClick': 'reset'},
+                                figure=fig_action_per_pixel,
+                                ),
+                            ])),
+                    dbc.Col(html.Div()),
+            ]),
         ], style={'margin': '0 auto','align-items': 'center'}),
-            html.Div(children = [
-                html.Iframe(
-                    # controls = True,
-                    id = 'movie_player',
-                    src = "https://www.youtube.com/embed/lKWqIg4nZKs",
-                    width = "1000px",
-                    # autoPlay=True,
-                    # loop=True,
-                    style={"height": "720px", "width": "720px", 'margin-left': '25 auto'},),
-        ])
         ]
             ),
+        dcc.Tab(label='r/place atlas & communities', value='tab-3', children=[
+            html.Div([
+                dbc.Row([
+                    dbc.Col(html.Div(""), width="auto"),
+                        dbc.Col(
+                            html.Div([
+                                html.H3('The 2022 r/place timeline and atlas'),
+                                html.Div([
+                                dcc.Graph(
+                                    id='image-with-slider-2',
+                                    config={'doubleClick': 'reset'},
+                                    ),
+                                ]),
+                            html.Div([
+                                daq.Slider(
+                                    min=0,
+                                    max=81,
+                                    step=1,
+                                    value=81,
+                                    size=1000,
+                                    id='hour-slider-2',
+                                    handleLabel={"showCurrentValue": True,"label": "Hours"},)
+                                    ], style={}),
+                            html.Div([
+                                dcc.Checklist(
+                                    id='checklist-2',
+                                    options=[
+                                        {
+                                            'label': 'Show Atlas Layer',
+                                            'value': 'show_atlas',
+                                        },
+                                        {
+                                            'label': 'Show picture', 
+                                            'value': 'show_picture'
+                                        },
+                                        {
+                                            'label': 'Show communities', 
+                                            'value': 'show_communities'
+                                        },
+                                        {
+                                            'label': 'Show communities - smoothed', 
+                                            'value': 'show_communities_smoothed'
+                                        },
+
+                                    ],
+                                    value=['show_atlas', 'show_picture'],
+                                    labelStyle = {'display':'block', 'font-size': 16, 'color': 'black', 'margin-left': '10px', 'margin-right': 'auto', 'width': '100%', 'text-align': 'left'},
+                                    ),
+                                ], style={'display': 'block', 'margin-left': 'auto', 'width': '100%'}),
+                        ], style={'align-items': 'center', 'justify-content': 'center', 'display': 'block' ,'margin-left': 'auto', 'width': '100%'}),
+                        width="auto"),
+                ]),
+            ]),
+        ]),
     ]),
     html.Div(id='tabs-example-content-1'),    
-], style={'align-items': 'center', 'justify-content': 'center', 'display': 'inline-block', 'margin': '25 auto', 'width': '100%'})
+], style={'align-items': 'center', 'justify-content': 'center', 'display': 'block', 'margin': '25 auto', 'width': '100%'})
 
 
 
@@ -177,16 +277,17 @@ def update_figure(selected_hour, checklist):
     if 'show_atlas' in checklist:
         for i in range(len(atlas_df)):
             fig.add_trace(
-                go.Scatter(
+                go.Scattergl(
                     x=atlas_df.x_scaled.loc[i],
                     y=atlas_df.y_scaled.loc[i],
                     mode='lines',
                     fill="toself",
+                    opacity=0.5,
                     # hoveron='points+fills',
                     # customdata=[atlas_df.name.loc[i], atlas_df.description.loc[i]],
-                    # hovertext=atlas_df.name.loc[i],
-                    # text=atlas_df.name.loc[i]
-                    name=atlas_df.name.loc[i],
+                    hovertext=atlas_df.name.loc[i],
+                    # text=atlas_df.name.loc[i],
+                    name=atlas_df.name.loc[i]
                 )
             )
 
@@ -195,6 +296,7 @@ def update_figure(selected_hour, checklist):
     print(image_path)
 
     # Add image
+    
     fig.add_layout_image(
         dict(
             x=0,
@@ -262,5 +364,100 @@ def display_hover_data(hoverData, checklist):
         return None, None
     
 
+@app.callback(
+    Output('image-with-slider-2', 'figure'),
+    Input('hour-slider-2', 'value'),
+    Input('checklist-2', 'value'))
+def update_figure_2(selected_hour, checklist):
+    # Create figure
+    fig = go.Figure()
+
+    # Constants
+    img_width = 1000
+    img_height = 1000
+    scale_factor = 1
+    # Add invisible scatter trace.
+    # This trace is added to help the autoresize logic work.
+
+    # Scaled atlas shapes    
+    atlas_df['x_scaled']  = atlas_df['x'].apply(lambda x: np.array(x) * scale_factor)
+    atlas_df['y_scaled']  = atlas_df['y'].apply(lambda x: np.array(x) * scale_factor)
+    fig.add_trace(
+        go.Scatter(
+            x=[0, img_width * scale_factor],
+            y=[0, img_height * scale_factor],
+            mode="markers",
+            marker_opacity=0
+        )
+    )
+    
+    if 'show_atlas' in checklist:
+        for i in range(len(atlas_df)):
+            fig.add_trace(
+                go.Scattergl(
+                    x=atlas_df.x_scaled.loc[i],
+                    y=atlas_df.y_scaled.loc[i],
+                    mode='lines',
+                    fill="toself",
+                    opacity=0.5,
+                    # hoveron='points+fills',
+                    # customdata=[atlas_df.name.loc[i], atlas_df.description.loc[i]],
+                    hovertext=atlas_df.name.loc[i],
+                    # text=atlas_df.name.loc[i],
+                    name=atlas_df.name.loc[i]
+                )
+            )
+
+
+    image_path = dict_hours_images[str(selected_hour)]
+    print(image_path)
+
+    # Add image
+    if 'show_picture' in checklist:
+        fig.add_layout_image(
+            dict(
+                x=0,
+                sizex=img_width * scale_factor,
+                y=(img_height * scale_factor) - (img_height * scale_factor),
+                sizey=img_height * scale_factor,
+                xref="x",
+                yref="y",
+                opacity=1.0,
+                layer="below",
+                sizing="stretch",
+                source=image_path)
+        )
+
+    # Configure axes
+    fig.update_xaxes(
+        visible=False,
+        range=[0, img_width * scale_factor],
+        constrain="domain"
+    )
+
+    fig.update_yaxes(
+        visible=False,
+        range=[0, img_height * scale_factor],
+        # the scaleanchor attribute ensures that the aspect ratio stays constant
+        scaleanchor="x",
+        autorange="reversed",
+        constrain="domain"
+    )
+
+    # Configure other layout
+    fig.update_layout(
+        width=img_width * scale_factor,
+        height=img_height * scale_factor,
+        margin={"l": 0, "r": 0, "t": 0, "b": 0},
+        showlegend=False
+    )
+
+    # Disable the autosize on double click because it adds unwanted margins around the image
+    # More detail: https://plotly.com/python/configuration-options/
+    # fig.show(config={'doubleClick': 'reset'})
+    return fig
+
+
 if __name__ == '__main__':
     app.run_server(debug=True)
+
