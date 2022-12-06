@@ -216,11 +216,15 @@ app.layout = html.Div([
                                     max=81,
                                     step=1,
                                     value=81,
-                                    size=1000,
+                                    size=800,
                                     id='hour-slider-2',
                                     handleLabel={"showCurrentValue": True,"label": "Hours"},)
                                     ], style={}),
-                            html.Div([
+                        ], style={'align-items': 'center', 'justify-content': 'center', 'display': 'block' ,'margin-left': 'auto', 'width': '100%'}),
+                        width="auto"),
+                        dbc.Col(
+                            html.Div(children=[
+                                html.Div([
                                 dcc.Checklist(
                                     id='checklist-2',
                                     options=[
@@ -245,9 +249,9 @@ app.layout = html.Div([
                                     value=['show_picture'],
                                     labelStyle = {'display':'block', 'font-size': 16, 'color': 'black', 'margin-left': '10px', 'margin-right': 'auto', 'width': '100%', 'text-align': 'left'},
                                     ),
-                                ], style={'display': 'block', 'margin-left': 'auto', 'width': '100%'}),
-                        ], style={'align-items': 'center', 'justify-content': 'center', 'display': 'block' ,'margin-left': 'auto', 'width': '100%'}),
-                        width="auto"),
+                                ], style={'display': 'block', 'margin-left': 'auto', 'margin-top': '50px', 'width': '100%'}),
+                            ],)
+                        , width="auto"),
                 ]),
             ]),
         ]),
@@ -386,8 +390,8 @@ def update_figure_2(selected_hour, checklist):
     # Constants
     original_img_width = 400
     original_img_height = 400
-    img_width = 1000
-    img_height = 1000
+    img_width = 800
+    img_height = 800
     scale_factor = 1
     # Add invisible scatter trace.
     # This trace is added to help the autoresize logic work.
